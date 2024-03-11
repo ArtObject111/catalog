@@ -1,10 +1,22 @@
-import { goodsAPI } from "../api/api";
+import { stopSubmit } from "redux-form";
+import { goodsAPI }   from "../api/api";
 
-const SET_GOODS_IDS      = "SET-GOODS-IDS";
-const SET_GOODS_PARAMS   = "SET-GOODS-PARAMS";
-const SET_CURRENT_PAGE   = "SET-CURRENT-PAGE";
-const TOGGLE_IS_FETCHING = "TOGGLE-IS-FETCHING";
+const SET_GOODS_IDS       = "SET-GOODS-IDS";
+const SET_GOODS_DATA      = "SET-GOODS-DATA";
+const SET_CURRENT_PAGE    = "SET-CURRENT-PAGE";
+const TOGGLE_IS_FETCHING  = "TOGGLE-IS-FETCHING";
 const TOGGLE_IS_LAST_PAGE = "TOGGLE-IS-LAST-PAGE";
+
+const SET_FOUND_GOODS_IDS = "SET-FOUND-GOODS-IDS";
+
+const uniqObjectsArr = (array) => {
+    return array.reduce((acc, obj) => {
+        if (!acc.some(o => o.id === obj.id)) { 
+            acc = [...acc, obj]
+        }
+        return acc;
+    }, []);
+}
 
 let initialState = {
     goodsIds:    null,
@@ -13,47 +25,28 @@ let initialState = {
     isLastPage:  false,
     pageSize:    50,
     currentPage: 1,
-    //         {
-    //             "brand": "Jacob & Co",
-    //             "id": "18e4e3bd-5e60-4348-8c92-4f61c676be1f",
-    //             "price": 52400.0,
-    //             "product": "\u0417\u043e\u043b\u043e\u0442\u043e\u0435 \u043a\u043e\u043b\u044c\u0446\u043e \u0441 \u0431\u0440\u0438\u043b\u043b\u0438\u0430\u043d\u0442\u043e\u043c"
-    //         },
-    //         {
-    //             "brand": null,
-    //             "id": "711837ec-57f6-4145-b17f-c74c2896bafe",
-    //             "price": 4500.0,
-    //             "product": "\u0417\u043e\u043b\u043e\u0442\u043e\u0435 \u043a\u043e\u043b\u044c\u0446\u043e \u0441 \u0431\u0440\u0438\u043b\u043b\u0438\u0430\u043d\u0442\u0430\u043c\u0438"
-    //         },
-    //         {
-    //             "brand": null,
-    //             "id": "6c972a4a-5b91-4a98-9780-3a19a7f41560",
-    //             "price": 55000.0,
-    //             "product": "\u0417\u043e\u043b\u043e\u0442\u043e\u0439 \u0431\u0440\u0430\u0441\u043b\u0435\u0442 \u0441 \u0431\u0440\u0438\u043b\u043b\u0438\u0430\u043d\u0442\u0430\u043c\u0438 \u0438 \u0430\u043c\u0435\u0442\u0438\u0441\u0442\u0430\u043c\u0438"
-    //         }
+
+    foundIds:           null,
+    filteredPagesCount: null
 }
 
 const goodsReducer = (state = initialState, action) => {
     switch (action.type) {
         case SET_GOODS_IDS:
-            debugger
             return {
                 ...state,
                 goodsIds: action.goodsIds
             }
-        case SET_GOODS_PARAMS:
-
-            // let uniqGoods = action.goodsParams.reduce((acc, obj) => {
-
-            //   if (!acc.some(o => o.id === obj.id)) { 
-            //       acc = [...acc, obj]
-            //   }  
-            //   return acc;
-            // }, []);
-            
+        case SET_FOUND_GOODS_IDS:
             return {
                 ...state,
-                goodsData: action.goodsParams
+                foundGoodsIds: action.foundGoodsIds,
+                filteredPagesCount: action.filteredPagesCount
+            }
+        case SET_GOODS_DATA:
+            return {
+                ...state,
+                goodsData: action.goodsData
             }
         case TOGGLE_IS_FETCHING:
             return {
@@ -66,7 +59,6 @@ const goodsReducer = (state = initialState, action) => {
                 currentPage: action.currentPageNumber
             }
         case TOGGLE_IS_LAST_PAGE:
-            debugger
             return {
                 ...state,
                 isLastPage: action.isLastPage
@@ -79,10 +71,12 @@ const goodsReducer = (state = initialState, action) => {
 
 // блок actionCreators
 export const setGoodsIds      = (goodsIds) => ({ type: SET_GOODS_IDS, goodsIds })
-export const setGoodsParams   = (goodsParams) => ({ type: SET_GOODS_PARAMS, goodsParams })
+export const setGoodsData     = (goodsData) => ({ type: SET_GOODS_DATA, goodsData })
 export const setCurrentPage   = (currentPageNumber) => ({type: SET_CURRENT_PAGE, currentPageNumber})
 export const toggleIsFetching = (isFetching) => ({type: TOGGLE_IS_FETCHING, isFetching})
 export const toggleIsLastPage = (isLastPage) => ({type: TOGGLE_IS_LAST_PAGE, isLastPage})
+
+export const setFoundGoodsIds = (foundGoodsIds) => ({ type: SET_GOODS_IDS, foundGoodsIds })
 
 // блок thunkCreators
 export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => {
@@ -95,8 +89,6 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
     
     // если при запрашивании limit + 1 idsData.length < limit + 1, значит запрашиваемая страница последняя
     if (idsData.data.result.length < limit + 1) {
-        debugger
-        // console.log("Последняя страница")
         dispatch(toggleIsLastPage(true))
     }
     else {
@@ -111,45 +103,25 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
 
     //унификация дублирующихся id товаров
     let uniqIds = idsData.data.result.reduce((acc, id) => {
+
         if (!acc.some(el => el === id)) { 
             acc = [...acc, id]
         }
-        else {
-            console.log(id)
-        }
+
         return acc;
+
     }, []);
 
     console.log("uniqIds")
     console.log(uniqIds)
 
     if (uniqIds.length < pageSize && idsData.data.result.length === pageSize) {
-        debugger
         const diffFromPageSize = pageSize - uniqIds.length
         dispatch(getGoodsTC(currentPage, pageSize + diffFromPageSize))
     }
 
     dispatch(setGoodsIds(uniqIds))
-    const paramsData = await goodsAPI.getParams(uniqIds)
-
-    console.log("paramsData")
-    console.log(paramsData.data.result)
-
-    //унификация дублирующихся товаров
-    let uniqGoods = paramsData.data.result.reduce((acc, obj) => {
-        if (!acc.some(o => o.id === obj.id)) { 
-            acc = [...acc, obj]
-        }
-        else {
-            console.log(obj.id)
-        }
-        return acc;
-    }, []);
-
-    console.log("uniqGoods")
-    console.log(uniqGoods)
-
-    dispatch(setGoodsParams(uniqGoods))
+    await dispatch(getGoodsDataTC(uniqIds))
     dispatch(toggleIsFetching(false))
   }
   catch (error) {
@@ -159,9 +131,60 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
   }
 }
 
-export const setCurrentPageThunkCreator = (pageNumber, pageSize) => async (dispatch) => {
+export const setCurrentPageTC = (pageNumber, pageSize) => async (dispatch) => {
     dispatch(getGoodsTC(pageNumber, pageSize))
     dispatch(setCurrentPage(pageNumber))
+}
+
+export const getGoodsDataTC = (ids) => async (dispatch) => {
+    const paramsData = await goodsAPI.getParams(ids)
+
+    console.log("paramsData")
+    console.log(paramsData.data.result)
+
+    //унификация дублирующихся товаров
+    const uniqGoods = uniqObjectsArr(paramsData.data.result)
+
+    console.log("uniqGoods")
+    console.log(uniqGoods)
+
+    dispatch(setGoodsData(uniqGoods))
+}
+
+export const findGoodsByFilterTC = (field) => async (dispatch, getState) => {
+    try {
+        const pageSize = getState().goods.pageSize
+        const fields   = getState().form.filter
+        const values   = Object.keys(getState().form.filter.values)
+        const keys     = Object.keys(fields)
+        const field    = keys[0]
+        const value    = values[0]
+        console.log(field)
+        debugger
+        console.log(fields)
+
+        dispatch(toggleIsFetching(true))
+
+        const response = await goodsAPI.findGoods(field, value)
+        
+        let ids = response.data.result
+        dispatch(setFoundGoodsIds(ids))
+
+        if (ids.length > pageSize) {
+            const pagesCount = Math.ceil(ids / pageSize)
+            ids = ids.slice(0, pageSize)
+        }
+
+        await dispatch(getGoodsDataTC(ids))
+        dispatch(toggleIsFetching(false))
+    }
+    catch (error) {
+        dispatch(stopSubmit("filter")) ///AC, который заготовили разработчики redux-form
+                                             //стоит распарсить строку ошибки
+        console.log("Ошибка:")
+        console.error(error)
+        dispatch(findGoodsByFilterTC())
+    }
 }
 
 export default goodsReducer

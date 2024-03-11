@@ -67,12 +67,12 @@ export const goodsAPI = {
     //     ]
     // }
     // выводит упорядоченные поля товаров field: product, price, brand
-    // getGoods (action = "get_items", offset = 10, limit = 3) {
+    // getGoods (action = "get_items", offset = 0, limit = 3) {
     //     return instance.post(``, {
     //         "action": "get_fields",
-    //         "params": {"field": "price", "offset": 0, "limit": 10}
+    //         "params": {"field": "brand", "offset": 0, "limit": 10}
     //     })
-    // }
+    // },
     // {
     //     "result": [
     //         16700.0,
@@ -87,6 +87,13 @@ export const goodsAPI = {
     //         90000.0
     //     ]
     // }
+    findGoods () {
+        
+        return instance.post(``, {
+            action: "filter",
+            "params": {"product": "Золотое колье"}
+        })
+    },
 
     getIds (offset = 0, limit = 50) {
         offset = offset*limit - limit

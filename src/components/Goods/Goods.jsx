@@ -1,16 +1,19 @@
 import React          from "react";
 import { connect }    from "react-redux";
 
-import { getGoodsTC, setCurrentPageThunkCreator } from "../../redux/goods-reducer";
+import                "./goods.scss"
+import { findGoodsByFilterTC, getGoodsTC, setCurrentPageTC } from "../../redux/goods-reducer";
 import { Product }    from "./Product/Product";
 import { PageBar }    from "./PageBar/PageBar";
 import { Preloader }  from "../../common/Preloader/Preloader";
+import { FilterBar }  from "../FilterBar/FilterBar";
 
 class Goods extends React.Component {
 
     componentDidMount() {
         const {getGoods, currentPage, pageSize} = this.props
         getGoods(currentPage, pageSize)
+        // this.props.findGoods()
     }
 
     onFlipPage = (pageNumber) => {
@@ -28,7 +31,8 @@ class Goods extends React.Component {
             goods,
             currentPage,
             isFetching,
-            isLastPage
+            isLastPage,
+            findGoods
         } = this.props
 
         if (isFetching) {
@@ -36,18 +40,21 @@ class Goods extends React.Component {
         }
 
         return (
-            <div>
-                <PageBar
-                    currentPage ={currentPage}
-                    onFlipPage  ={this.onFlipPage}
-                    isLastPage  ={isLastPage}
-                    />
-               {goods && goods.map((product) => <Product
-                    key   = {product.id}
-                    name  = {product.product}
-                    brand = {product.brand}
-                    price = {product.price}
-                />)}
+            <div className="app-wrapper">
+                <FilterBar findGoods={findGoods}/>
+                <div className="app-wrapper-content">
+                    <PageBar
+                        currentPage ={currentPage}
+                        onFlipPage  ={this.onFlipPage}
+                        isLastPage  ={isLastPage}
+                        />
+                    {goods && goods.map((product) => <Product
+                        key   = {product.id}
+                        name  = {product.product}
+                        brand = {product.brand}
+                        price = {product.price}
+                    />)}
+                </div>
             </div>
         )
     }
@@ -62,6 +69,7 @@ const mapStateToProps = (state) => ({
 })
 
 export default connect(mapStateToProps, {
-    setCurrentPage: setCurrentPageThunkCreator,
-    getGoods: getGoodsTC
+    setCurrentPage: setCurrentPageTC,
+    getGoods: getGoodsTC,
+    findGoods: findGoodsByFilterTC
 })(Goods)

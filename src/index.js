@@ -7,7 +7,7 @@ import { Provider } from 'react-redux';
 import App from './App';
 import store from './redux/redux-store';
 import { HashRouter } from 'react-router-dom';
-import { getGoodsTC } from './redux/goods-reducer';
+import { goodsAPI } from './api/api';
 
 // const data = goodsAPI.getGoods()
 
