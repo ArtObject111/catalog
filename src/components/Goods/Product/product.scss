@@ -1,0 +1,39 @@
+// @font-face {
+//     font-family: Roboto;
+//     // src: url('./../../../assets/fonts/Roboto-Medium.ttf');
+//     src: url('https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&display=swap');
+// }
+
+.product {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin: 15px;
+    background-color: #d5eef0;
+    box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(95, 158, 160, 0.1);
+
+    &__info {
+        display: flex;
+    }
+
+    &__header {
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        margin-left: 15px;
+    }
+
+    &__name {
+        margin-bottom: 5px;
+    }
+
+    &__brand {
+        font-weight: 100;
+    }
+
+    &__price {
+    
+    }
+}
