@@ -1,4 +1,4 @@
-import { stopSubmit } from "redux-form";
+import { reset, stopSubmit } from "redux-form";
 import { goodsAPI }   from "../api/api";
 
 const SET_GOODS_IDS       = "SET-GOODS-IDS";
@@ -6,6 +6,7 @@ const SET_GOODS_DATA      = "SET-GOODS-DATA";
 const SET_CURRENT_PAGE    = "SET-CURRENT-PAGE";
 const TOGGLE_IS_FETCHING  = "TOGGLE-IS-FETCHING";
 const TOGGLE_IS_LAST_PAGE = "TOGGLE-IS-LAST-PAGE";
+const TOGGLE_IS_FILTERED  = "TOGGLE-IS-LAST-FILTERED";
 
 const SET_FOUND_GOODS_IDS = "SET-FOUND-GOODS-IDS";
 
@@ -27,7 +28,10 @@ let initialState = {
     currentPage: 1,
 
     foundIds:           null,
-    filteredPagesCount: null
+    filteredPagesCount: null,
+    isFiltered:         false,
+    filteredByField:    null,
+    filteredByValue:    null
 }
 
 const goodsReducer = (state = initialState, action) => {
@@ -63,6 +67,13 @@ const goodsReducer = (state = initialState, action) => {
                 ...state,
                 isLastPage: action.isLastPage
             }
+        case TOGGLE_IS_FILTERED:
+                return {
+                    ...state,
+                    isFiltered: action.isFiltered,
+                    filteredByField: action.filteredByField,
+                    filteredByValue: action.filteredByValue
+                }
         default: {
             return state
         }
@@ -75,6 +86,7 @@ export const setGoodsData     = (goodsData) => ({ type: SET_GOODS_DATA, goodsDat
 export const setCurrentPage   = (currentPageNumber) => ({type: SET_CURRENT_PAGE, currentPageNumber})
 export const toggleIsFetching = (isFetching) => ({type: TOGGLE_IS_FETCHING, isFetching})
 export const toggleIsLastPage = (isLastPage) => ({type: TOGGLE_IS_LAST_PAGE, isLastPage})
+export const toggleIsFiltered = (isFiltered, filteredByField, filteredByValue) => ({type: TOGGLE_IS_FILTERED, isFiltered, filteredByField, filteredByValue})
 
 export const setFoundGoodsIds = (foundGoodsIds) => ({ type: SET_GOODS_IDS, foundGoodsIds })
 
@@ -98,9 +110,6 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
         dispatch(toggleIsLastPage(false))
     }
 
-    console.log("idsData")
-    console.log(idsData.data.result)
-
     //унификация дублирующихся id товаров
     let uniqIds = idsData.data.result.reduce((acc, id) => {
 
@@ -111,9 +120,6 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
         return acc;
 
     }, []);
-
-    console.log("uniqIds")
-    console.log(uniqIds)
 
     if (uniqIds.length < pageSize && idsData.data.result.length === pageSize) {
         const diffFromPageSize = pageSize - uniqIds.length
@@ -139,14 +145,8 @@ export const setCurrentPageTC = (pageNumber, pageSize) => async (dispatch) => {
 export const getGoodsDataTC = (ids) => async (dispatch) => {
     const paramsData = await goodsAPI.getParams(ids)
 
-    console.log("paramsData")
-    console.log(paramsData.data.result)
-
     //унификация дублирующихся товаров
     const uniqGoods = uniqObjectsArr(paramsData.data.result)
-
-    console.log("uniqGoods")
-    console.log(uniqGoods)
 
     dispatch(setGoodsData(uniqGoods))
 }
@@ -154,37 +154,91 @@ export const getGoodsDataTC = (ids) => async (dispatch) => {
 export const findGoodsByFilterTC = (field) => async (dispatch, getState) => {
     try {
         const pageSize = getState().goods.pageSize
-        const fields   = getState().form.filter
-        const values   = Object.keys(getState().form.filter.values)
-        const keys     = Object.keys(fields)
-        const field    = keys[0]
-        const value    = values[0]
-        console.log(field)
-        debugger
-        console.log(fields)
 
+        let values  = getState().form.filter.values
+        let field   = Object.keys(values)[0]
+        let value   = values[field]
+
+        if (field === "price") {
+            value = Number(value)
+        }
+        
         dispatch(toggleIsFetching(true))
 
         const response = await goodsAPI.findGoods(field, value)
         
         let ids = response.data.result
+        
         dispatch(setFoundGoodsIds(ids))
 
         if (ids.length > pageSize) {
-            const pagesCount = Math.ceil(ids / pageSize)
             ids = ids.slice(0, pageSize)
+            dispatch(toggleIsLastPage(false))
+        } else {
+            dispatch(toggleIsLastPage(true))
         }
 
         await dispatch(getGoodsDataTC(ids))
+        dispatch(setCurrentPage(1))
+        dispatch(toggleIsFiltered(true, field, value))
         dispatch(toggleIsFetching(false))
     }
+    
     catch (error) {
         dispatch(stopSubmit("filter")) ///AC, который заготовили разработчики redux-form
-                                             //стоит распарсить строку ошибки
         console.log("Ошибка:")
         console.error(error)
-        dispatch(findGoodsByFilterTC())
+        dispatch(findGoodsByFilterTC(field))
     }
+}
+
+export const resetFormTC = () => (dispatch) => {
+    dispatch(reset("filter"))
+}
+
+export const clearFilter = () => async(dispatch, getState) => {
+
+    const pageSize    = getState().goods.pageSize
+    const currentPage = 1
+    debugger
+    dispatch(toggleIsFetching(true))
+    await dispatch(getGoodsTC(currentPage, pageSize))
+    toggleIsFiltered(false, null, null)
+    await dispatch(reset("filter"))
+    dispatch(setCurrentPage(1))
+    dispatch(toggleIsFetching(false))
+}
+
+export const flipFilterTC = (currentPage, pageSize) => async(dispatch, getState) => {
+
+    const field = getState().goods.filteredByField
+    const value = getState().goods.filteredByValue
+
+    try {
+        dispatch(toggleIsFetching(true))
+    
+        const response = await goodsAPI.findGoods(field, value)
+        
+        let ids = response.data.result
+        dispatch(setFoundGoodsIds(ids))
+    
+        if (ids.length > pageSize*currentPage) {
+            dispatch(toggleIsLastPage(false))
+        } else {
+            dispatch(toggleIsLastPage(true))
+        }
+        
+        ids = ids.slice((currentPage-1)*pageSize, pageSize*currentPage)
+        
+        await dispatch(getGoodsDataTC(ids))
+        dispatch(setCurrentPage(currentPage))
+        dispatch(toggleIsFetching(false))
+    }
+   catch (error) {
+        console.log("Ошибка:")
+        console.error(error)
+        dispatch(findGoodsByFilterTC(currentPage, pageSize))
+   }
 }
 
 export default goodsReducer

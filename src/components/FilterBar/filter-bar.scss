@@ -4,6 +4,10 @@
     align-items: center;
     background-color: cadetblue;
 
+    & .wrapper {
+        display: flex;
+    }
+
     &__inner {
         display: flex;
         flex-direction: column;

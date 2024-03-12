@@ -16,12 +16,13 @@ export const FormControl = (Component) => ({input, meta: {touched, error}, ...pr
     )
 }
 
-export const  createField = (placeholder, name, validators, component, props={}, text="") => (
+export const  createField = (placeholder, name, validators, component, onClick, props={}, text="") => (
     <div>
         <Field placeholder={placeholder}
                name={name}
                component={component}
                validate={validators}
+               onClick={onClick}
                {...props}
         /> {text}
     </div>

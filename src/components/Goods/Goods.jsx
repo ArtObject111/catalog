@@ -1,28 +1,37 @@
-import React          from "react";
-import { connect }    from "react-redux";
+import React            from "react";
+import { connect }      from "react-redux";
 
-import                "./goods.scss"
-import { findGoodsByFilterTC, getGoodsTC, setCurrentPageTC } from "../../redux/goods-reducer";
-import { Product }    from "./Product/Product";
-import { PageBar }    from "./PageBar/PageBar";
-import { Preloader }  from "../../common/Preloader/Preloader";
-import { FilterBar }  from "../FilterBar/FilterBar";
+import                  "./goods.scss"
+import { 
+    clearFilter,
+    findGoodsByFilterTC, 
+    flipFilterTC, 
+    getGoodsTC, 
+    resetFormTC, 
+    setCurrentPageTC }  from "../../redux/goods-reducer";
+import { Product }      from "./Product/Product";
+import { PageBar }      from "./PageBar/PageBar";
+import { Preloader }    from "../../common/Preloader/Preloader";
+import { FilterBar }    from "../FilterBar/FilterBar";
 
 class Goods extends React.Component {
 
     componentDidMount() {
         const {getGoods, currentPage, pageSize} = this.props
         getGoods(currentPage, pageSize)
-        // this.props.findGoods()
     }
 
     onFlipPage = (pageNumber) => {
         const {
             setCurrentPage,
-            pageSize
+            pageSize,
+            isFiltered,
+            flipFilter
         } = this.props
 
-        setCurrentPage(pageNumber, pageSize)
+        isFiltered
+        ? flipFilter (pageNumber, pageSize)
+        : setCurrentPage(pageNumber, pageSize)
     }
 
     render () {
@@ -32,23 +41,25 @@ class Goods extends React.Component {
             currentPage,
             isFetching,
             isLastPage,
-            findGoods
+            findGoods,
+            resetForm,
+            clearFilter
         } = this.props
-
-        if (isFetching) {
-            return <Preloader/>
-        }
 
         return (
             <div className="app-wrapper">
-                <FilterBar findGoods={findGoods}/>
+                <FilterBar 
+                    resetForm        = {resetForm}
+                    findGoods        = {findGoods}
+                    clearFilter      = {clearFilter}/>
                 <div className="app-wrapper-content">
                     <PageBar
-                        currentPage ={currentPage}
-                        onFlipPage  ={this.onFlipPage}
-                        isLastPage  ={isLastPage}
+                        currentPage = {currentPage}
+                        onFlipPage  = {this.onFlipPage}
+                        isLastPage  = {isLastPage}
                         />
-                    {goods && goods.map((product) => <Product
+                    {isFetching ? <Preloader/> :
+                    goods && goods.map((product) => <Product
                         key   = {product.id}
                         name  = {product.product}
                         brand = {product.brand}
@@ -65,11 +76,15 @@ const mapStateToProps = (state) => ({
     pageSize:    state.goods.pageSize,
     currentPage: state.goods.currentPage,
     isFetching:  state.goods.isFetching,
-    isLastPage:  state.goods.isLastPage
+    isLastPage:  state.goods.isLastPage,
+    isFiltered:  state.goods.isFiltered
 })
 
 export default connect(mapStateToProps, {
+    clearFilter: clearFilter,
     setCurrentPage: setCurrentPageTC,
     getGoods: getGoodsTC,
-    findGoods: findGoodsByFilterTC
+    findGoods: findGoodsByFilterTC,
+    resetForm: resetFormTC,
+    flipFilter: flipFilterTC
 })(Goods)
