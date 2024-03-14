@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/catalog/static/css/main.4b2981d1.css",
-    "main.js": "/catalog/static/js/main.542d88c8.js",
+    "main.css": "/catalog/static/css/main.ada986b4.css",
+    "main.js": "/catalog/static/js/main.2bafb620.js",
     "static/js/453.7513a999.chunk.js": "/catalog/static/js/453.7513a999.chunk.js",
     "static/media/Geologica.ttf": "/catalog/static/media/Geologica.f3e3fbc9355fd9e0c193.ttf",
     "static/media/actaywide-bold.otf": "/catalog/static/media/actaywide-bold.caa5b9cf6208eb686929.otf",
     "static/media/bag.svg": "/catalog/static/media/bag.b6b50835f85d5b664d08251f313d0642.svg",
     "static/media/puff.svg": "/catalog/static/media/puff.261014aa1b52e084c757b523ab2c3454.svg",
     "index.html": "/catalog/index.html",
-    "main.4b2981d1.css.map": "/catalog/static/css/main.4b2981d1.css.map",
-    "main.542d88c8.js.map": "/catalog/static/js/main.542d88c8.js.map",
+    "main.ada986b4.css.map": "/catalog/static/css/main.ada986b4.css.map",
+    "main.2bafb620.js.map": "/catalog/static/js/main.2bafb620.js.map",
     "453.7513a999.chunk.js.map": "/catalog/static/js/453.7513a999.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.4b2981d1.css",
-    "static/js/main.542d88c8.js"
+    "static/css/main.ada986b4.css",
+    "static/js/main.2bafb620.js"
   ]
 }
