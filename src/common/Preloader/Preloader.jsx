@@ -1,5 +1,6 @@
 import React     from "react";
 
+import           "./preloader.scss"
 import preloader from "../../assets/vector/puff.svg";
 
 export const Preloader = () => {

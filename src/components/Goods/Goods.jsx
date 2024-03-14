@@ -5,7 +5,8 @@ import                  "./goods.scss"
 import { 
     clearFilter,
     findGoodsByFilterTC, 
-    flipFilterTC, 
+    flipFilterTC,
+    getBrandsTC, 
     getGoodsTC, 
     resetFormTC, 
     setCurrentPageTC }  from "../../redux/goods-reducer";
@@ -17,8 +18,9 @@ import { FilterBar }    from "../FilterBar/FilterBar";
 class Goods extends React.Component {
 
     componentDidMount() {
-        const {getGoods, currentPage, pageSize} = this.props
+        const {getGoods, currentPage, pageSize, getBrands} = this.props
         getGoods(currentPage, pageSize)
+        getBrands()
     }
 
     onFlipPage = (pageNumber) => {
@@ -43,15 +45,19 @@ class Goods extends React.Component {
             isLastPage,
             findGoods,
             resetForm,
-            clearFilter
+            clearFilter,
+            goodsBrands,
+            isFiltered
         } = this.props
-
+        
         return (
             <div className="app-wrapper">
                 <FilterBar 
-                    resetForm        = {resetForm}
-                    findGoods        = {findGoods}
-                    clearFilter      = {clearFilter}/>
+                    resetForm   = {resetForm}
+                    findGoods   = {findGoods}
+                    clearFilter = {clearFilter}
+                    goodsBrands = {goodsBrands}
+                    isFiltered  = {isFiltered}/>
                 <div className="app-wrapper-content">
                     <PageBar
                         currentPage = {currentPage}
@@ -63,6 +69,7 @@ class Goods extends React.Component {
                         key   = {product.id}
                         name  = {product.product}
                         brand = {product.brand}
+                        id    = {product.id}
                         price = {product.price}
                     />)}
                 </div>
@@ -77,14 +84,16 @@ const mapStateToProps = (state) => ({
     currentPage: state.goods.currentPage,
     isFetching:  state.goods.isFetching,
     isLastPage:  state.goods.isLastPage,
-    isFiltered:  state.goods.isFiltered
+    isFiltered:  state.goods.isFiltered,
+    goodsBrands:  state.goods.goodsBrands
 })
 
 export default connect(mapStateToProps, {
-    clearFilter: clearFilter,
+    clearFilter:    clearFilter,
     setCurrentPage: setCurrentPageTC,
-    getGoods: getGoodsTC,
-    findGoods: findGoodsByFilterTC,
-    resetForm: resetFormTC,
-    flipFilter: flipFilterTC
+    getGoods:       getGoodsTC,
+    findGoods:      findGoodsByFilterTC,
+    resetForm:      resetFormTC,
+    flipFilter:     flipFilterTC,
+    getBrands:      getBrandsTC
 })(Goods)

@@ -1,5 +1,5 @@
 import { reset, stopSubmit } from "redux-form";
-import { goodsAPI }   from "../api/api";
+import { goodsAPI }          from "../api/api";
 
 const SET_GOODS_IDS       = "SET-GOODS-IDS";
 const SET_GOODS_DATA      = "SET-GOODS-DATA";
@@ -7,8 +7,8 @@ const SET_CURRENT_PAGE    = "SET-CURRENT-PAGE";
 const TOGGLE_IS_FETCHING  = "TOGGLE-IS-FETCHING";
 const TOGGLE_IS_LAST_PAGE = "TOGGLE-IS-LAST-PAGE";
 const TOGGLE_IS_FILTERED  = "TOGGLE-IS-LAST-FILTERED";
-
 const SET_FOUND_GOODS_IDS = "SET-FOUND-GOODS-IDS";
+const SET_GOODS_BRANDS    = "SET-GOODS-BRANDS";
 
 const uniqObjectsArr = (array) => {
     return array.reduce((acc, obj) => {
@@ -31,7 +31,8 @@ let initialState = {
     filteredPagesCount: null,
     isFiltered:         false,
     filteredByField:    null,
-    filteredByValue:    null
+    filteredByValue:    null,
+    goodsBrands:        null
 }
 
 const goodsReducer = (state = initialState, action) => {
@@ -68,12 +69,18 @@ const goodsReducer = (state = initialState, action) => {
                 isLastPage: action.isLastPage
             }
         case TOGGLE_IS_FILTERED:
-                return {
-                    ...state,
-                    isFiltered: action.isFiltered,
-                    filteredByField: action.filteredByField,
-                    filteredByValue: action.filteredByValue
-                }
+
+            return {
+                ...state,
+                isFiltered: action.isFiltered,
+                filteredByField: action.filteredByField,
+                filteredByValue: action.filteredByValue
+            }
+        case SET_GOODS_BRANDS:
+            return {
+                ...state,
+                goodsBrands: action.goodsBrands
+            }
         default: {
             return state
         }
@@ -82,6 +89,7 @@ const goodsReducer = (state = initialState, action) => {
 
 // блок actionCreators
 export const setGoodsIds      = (goodsIds) => ({ type: SET_GOODS_IDS, goodsIds })
+export const setGoodsBrands   = (goodsBrands) => ({ type: SET_GOODS_BRANDS, goodsBrands })
 export const setGoodsData     = (goodsData) => ({ type: SET_GOODS_DATA, goodsData })
 export const setCurrentPage   = (currentPageNumber) => ({type: SET_CURRENT_PAGE, currentPageNumber})
 export const toggleIsFetching = (isFetching) => ({type: TOGGLE_IS_FETCHING, isFetching})
@@ -97,7 +105,9 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
 
   try { 
     dispatch(toggleIsFetching(true))
-    const idsData = await goodsAPI.getIds(currentPage, limit) //вернёт idsData.length = limit + 1, т к запрашиваем на 1 товар больше, чем надо
+
+    //вернёт idsData.length = limit + 1, т к запрашиваем на 1 товар больше, чем надо
+    const idsData = await goodsAPI.getIds(currentPage, limit)
     
     // если при запрашивании limit + 1 idsData.length < limit + 1, значит запрашиваемая страница последняя
     if (idsData.data.result.length < limit + 1) {
@@ -116,7 +126,6 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
         if (!acc.some(el => el === id)) { 
             acc = [...acc, id]
         }
-
         return acc;
 
     }, []);
@@ -200,14 +209,37 @@ export const clearFilter = () => async(dispatch, getState) => {
 
     const pageSize    = getState().goods.pageSize
     const currentPage = 1
-    debugger
+    
     dispatch(toggleIsFetching(true))
     await dispatch(getGoodsTC(currentPage, pageSize))
-    toggleIsFiltered(false, null, null)
+    dispatch(toggleIsFiltered(false, null, null))
     await dispatch(reset("filter"))
     dispatch(setCurrentPage(1))
     dispatch(toggleIsFetching(false))
 }
+
+export const getBrandsTC = () => async(dispatch) => {
+
+    try{
+        let data = await goodsAPI.getBrands()
+        
+        let brands = data.data.result.reduce((acc, brand) => {
+           
+            if ((brand !== null) && (!acc.some(el => el === brand))) { 
+                acc = [...acc, brand]
+            }
+            return acc;
+
+        }, [])
+        
+        dispatch(setGoodsBrands(brands))
+        }
+    catch (error) {
+        console.log("Ошибка")
+        console.error(error)
+        dispatch(getBrandsTC())
+    }
+}   
 
 export const flipFilterTC = (currentPage, pageSize) => async(dispatch, getState) => {
 
@@ -237,7 +269,7 @@ export const flipFilterTC = (currentPage, pageSize) => async(dispatch, getState)
    catch (error) {
         console.log("Ошибка:")
         console.error(error)
-        dispatch(findGoodsByFilterTC(currentPage, pageSize))
+        dispatch(flipFilterTC(currentPage, pageSize))
    }
 }
 

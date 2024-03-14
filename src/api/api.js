@@ -18,10 +18,18 @@ const instance = axios.create({
 });
 
 export const goodsAPI = {
+
+    getBrands () {
+        return instance.post(``, {
+            action: "get_fields",
+            params: {field: "brand"}
+        })
+    },
+
     findGoods (field, value) {
         return instance.post(``, {
             action: "filter",
-            "params": { [field]: value }
+            params: { [field]: value }
         })
     },
 
@@ -32,6 +40,7 @@ export const goodsAPI = {
             params: {offset, limit: limit + 1}
         })
     },
+
     getParams (ids =[]) {
         return instance.post(``, {
             action: "get_items",

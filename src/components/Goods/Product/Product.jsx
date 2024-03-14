@@ -6,8 +6,10 @@ import ProductIcon from "../../../assets/vector/bag.svg"
 export const Product = ({
     name,
     brand,
-    price
+    price,
+    id
 }) => {
+
     return (
         <div className="product">
             <div className="product__info">
@@ -15,6 +17,7 @@ export const Product = ({
                 <div className="product__header">
                     <label className="product__name">{name ? name : "Name doesn't exist"}</label>
                     <label className="product__brand">{brand ? brand : "Brand doesn't exist"}</label>
+                    <label className="product__id">Артикул: {id && id}</label>
                 </div>
             </div>
             <div className="product__price">

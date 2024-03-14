@@ -18,7 +18,7 @@ export const PageBar = ({
     return (
         <div className={"page-number-bar"}>
             <button disabled={currentPage <= 1} onClick={flipBack}>{"<"}</button>
-                {`Стр. ${currentPage}`}
+                {`   Стр. ${currentPage}  `}
             <button disabled={isLastPage}
                     onClick={flipNext}>{">"}</button>
         </div>)
