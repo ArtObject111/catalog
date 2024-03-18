@@ -1,10 +1,11 @@
 import React from "react";
 import       "./page-bar.scss"
 
-export const PageBar = ({
+export const PageBar = React.memo(({
     currentPage,
     isLastPage,
-    onFlipPage
+    onFlipPage,
+    isFetching
 }) => {
 
     const flipNext = () => {
@@ -17,9 +18,9 @@ export const PageBar = ({
 
     return (
         <div className={"page-number-bar"}>
-            <button disabled={currentPage <= 1} onClick={flipBack}>{"<"}</button>
+            <button disabled={currentPage <= 1 || isFetching} onClick={flipBack}>{"<"}</button>
                 {`   Стр. ${currentPage}  `}
-            <button disabled={isLastPage}
+            <button disabled={isLastPage || isFetching}
                     onClick={flipNext}>{">"}</button>
         </div>)
-}
+})

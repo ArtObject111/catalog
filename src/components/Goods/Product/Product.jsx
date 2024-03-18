@@ -3,7 +3,7 @@ import React       from "react"
 import             "./product.scss"
 import ProductIcon from "../../../assets/vector/bag.svg"
 
-export const Product = ({
+export const Product = React.memo(({
     name,
     brand,
     price,
@@ -25,4 +25,4 @@ export const Product = ({
             </div>
         </div>
     )
-}
+})

@@ -49,7 +49,7 @@ class Goods extends React.Component {
             goodsBrands,
             isFiltered
         } = this.props
-        
+
         return (
             <div className="app-wrapper">
                 <FilterBar 
@@ -63,6 +63,7 @@ class Goods extends React.Component {
                         currentPage = {currentPage}
                         onFlipPage  = {this.onFlipPage}
                         isLastPage  = {isLastPage}
+                        isFetching  = {isFetching}
                         />
                     {isFetching ? <Preloader/> :
                     goods && goods.map((product) => <Product

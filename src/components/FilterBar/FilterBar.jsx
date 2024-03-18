@@ -41,7 +41,7 @@ FilterForm = reduxForm({
 })(FilterForm)
 
 
-export const FilterBar = ({
+export const FilterBar = React.memo(({
     findGoods,
     resetForm,
     clearFilter,
@@ -73,4 +73,4 @@ export const FilterBar = ({
             </div>
         </div>
     )
-}
+})

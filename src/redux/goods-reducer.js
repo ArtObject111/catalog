@@ -132,16 +132,18 @@ export const getGoodsTC = (currentPage, limit) => async (dispatch, getState) => 
 
     if (uniqIds.length < pageSize && idsData.data.result.length === pageSize) {
         const diffFromPageSize = pageSize - uniqIds.length
-        dispatch(getGoodsTC(currentPage, pageSize + diffFromPageSize))
+        await dispatch(getGoodsTC(currentPage, pageSize + diffFromPageSize))
+        return null
     }
 
     dispatch(setGoodsIds(uniqIds))
     await dispatch(getGoodsDataTC(uniqIds))
-    dispatch(toggleIsFetching(false))
+    // dispatch(toggleIsFetching(false))
   }
   catch (error) {
     console.log("Ошибка:")
     console.error(error.message)
+    console.log("Повтор запроса:")
     dispatch(getGoodsTC(currentPage, limit))
   }
 }
@@ -152,12 +154,23 @@ export const setCurrentPageTC = (pageNumber, pageSize) => async (dispatch) => {
 }
 
 export const getGoodsDataTC = (ids) => async (dispatch) => {
-    const paramsData = await goodsAPI.getParams(ids)
 
-    //унификация дублирующихся товаров
-    const uniqGoods = uniqObjectsArr(paramsData.data.result)
+    try {
+        // dispatch(toggleIsFetching(true))
+        const paramsData = await goodsAPI.getParams(ids)
 
-    dispatch(setGoodsData(uniqGoods))
+        //унификация дублирующихся товаров
+        const uniqGoods = uniqObjectsArr(paramsData.data.result)
+
+        await dispatch(setGoodsData(uniqGoods))
+        dispatch(toggleIsFetching(false))
+    }
+    catch (error) {
+        console.log("Ошибка:")
+        console.error(error.message)
+        console.log("Повтор запроса:")
+        dispatch(getGoodsDataTC(ids))
+    }
 }
 
 export const findGoodsByFilterTC = (field) => async (dispatch, getState) => {
@@ -264,7 +277,6 @@ export const flipFilterTC = (currentPage, pageSize) => async(dispatch, getState)
         
         await dispatch(getGoodsDataTC(ids))
         dispatch(setCurrentPage(currentPage))
-        dispatch(toggleIsFetching(false))
     }
    catch (error) {
         console.log("Ошибка:")
